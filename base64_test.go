@@ -58,6 +58,7 @@ func TestBase64TranscoderDecode(t *testing.T) {
 		{name: "Padded single char f", input: "Zg==", expected: []byte("f"), expectError: false},
 		{name: "Un padded hello world", input: "aGVsbG8gd29ybGQ=", expected: []byte("hello world"), expectError: false},
 		{name: "Three chars no padding", input: "Zm9v", expected: []byte("foo"), expectError: false},
+		{name: "Corrupt", input: "XXXXXaGVsbG8========", expected: []byte{0x5d, 0x75, 0xd7, 0x5d, 0xa1, 0x95, 0xb1, 0xb1, 0xbc}, expectError: true},
 	}
 
 	for _, tt := range cases {
@@ -66,7 +67,7 @@ func TestBase64TranscoderDecode(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err, "Decode should fail on invalid input %q", tt.input)
-				assert.Nil(t, result, "Result should be nil when error occurs")
+				assert.Equal(t, tt.expected, result, "Result should be nil when error occurs")
 			} else {
 				assert.NoError(t, err, "Decode should succeed for valid input %q", tt.input)
 				assert.Equal(t, tt.expected, result, "Decoded bytes do not match expected for input %q", tt.input)
