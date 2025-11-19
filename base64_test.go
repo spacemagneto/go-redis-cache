@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestBase64Transcoder_Encode is a table-driven test for the Encode method.
+// TestBase64TranscoderEncode is a table-driven test for the Encode method.
 // It verifies that various byte inputs are correctly encoded to standard Base64 strings
 // (RFC 4648 with padding).
 func TestBase64TranscoderEncode(t *testing.T) {
@@ -37,6 +37,40 @@ func TestBase64TranscoderEncode(t *testing.T) {
 
 			stdEncoded := base64.StdEncoding.EncodeToString(tt.input)
 			assert.Equal(t, stdEncoded, result, "Should match encoding/base64.StdEncoding")
+		})
+	}
+}
+
+// TestBase64TranscoderDecode is a table-driven test for the Decode method.
+// It covers valid Base64 strings (with and without padding), as well as various invalid cases.
+func TestBase64TranscoderDecode(t *testing.T) {
+	t.Parallel()
+
+	transcoder := NewBase64Transcoder()
+
+	cases := []struct {
+		name        string
+		input       string
+		expected    []byte
+		expectError bool
+	}{
+		{name: "Empty string", input: "", expected: []byte{}, expectError: false},
+		{name: "Padded single char f", input: "Zg==", expected: []byte("f"), expectError: false},
+		{name: "Un padded hello world", input: "aGVsbG8gd29ybGQ=", expected: []byte("hello world"), expectError: false},
+		{name: "Three chars no padding", input: "Zm9v", expected: []byte("foo"), expectError: false},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := transcoder.Decode(tt.input)
+
+			if tt.expectError {
+				assert.Error(t, err, "Decode should fail on invalid input %q", tt.input)
+				assert.Nil(t, result, "Result should be nil when error occurs")
+			} else {
+				assert.NoError(t, err, "Decode should succeed for valid input %q", tt.input)
+				assert.Equal(t, tt.expected, result, "Decoded bytes do not match expected for input %q", tt.input)
+			}
 		})
 	}
 }
