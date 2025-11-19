@@ -16,13 +16,13 @@ func NewBase64Transcoder() *Base64Transcoder {
 // Encode converts the given byte slice into a Base64-encoded string using the standard encoding.
 // The result includes padding characters (=) when necessary to comply with RFC 4648.
 // No error is ever returned because the standard encoding is guaranteed to succeed for any input
-func (b *Base64Transcoder) Encode(src []byte) (string, error) {
+func (t *Base64Transcoder) Encode(src []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(src), nil
 }
 
 // Decode converts a Base64-encoded string back into its original byte representation.
 // It accepts both padded and un-padded input (the standard decoder is tolerant of missing padding).
 // If the input contains invalid characters or incorrect padding, a non-nil error is returned.
-func (b *Base64Transcoder) Decode(src string) ([]byte, error) {
+func (t *Base64Transcoder) Decode(src string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(src)
 }

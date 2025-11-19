@@ -17,14 +17,14 @@ func NewJSONTranscoder[T any]() *JSONTranscoder[T] {
 
 // Marshal converts the given value of type T into its JSON byte representation.
 // The operation respects all standard JSON marshaling semantics and produces valid UTF-8 output.
-func (j *JSONTranscoder[T]) Marshal(src T) ([]byte, error) {
+func (t *JSONTranscoder[T]) Marshal(src T) ([]byte, error) {
 	return json.Marshal(src)
 }
 
 // Unmarshal parses JSON data from the provided byte slice and populates a new value of type T.
 // On success it returns the decoded value, on failure it returns the zero value of T together
 // with the parsing or assignment error.
-func (j *JSONTranscoder[T]) Unmarshal(src []byte) (T, error) {
+func (t *JSONTranscoder[T]) Unmarshal(src []byte) (T, error) {
 	var dest T
 	err := json.Unmarshal(src, &dest)
 	return dest, err
