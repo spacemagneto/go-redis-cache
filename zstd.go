@@ -10,8 +10,8 @@ import (
 // state (the encoder and decoder) and is safe for concurrent use because the underlying zstd
 // library guarantees thread-safety of its Writer and Reader types when properly configured.
 type ZSTDTranscoder struct {
-	Encoder *zstd.Encoder
-	Decoder *zstd.Decoder
+	encoder *zstd.Encoder
+	decoder *zstd.Decoder
 }
 
 // NewZSTDTranscoder creates a new ZSTDTranscoder with a fully configured encoder and decoder.
@@ -20,7 +20,7 @@ type ZSTDTranscoder struct {
 // an io.Writer/io.Reader – they operate on complete byte slices.
 // On any error during initialization, resources are cleaned up and the error is propagated.
 func NewZSTDTranscoder() (*ZSTDTranscoder, error) {
-	enc, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedBestCompression))
+	enc, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func NewZSTDTranscoder() (*ZSTDTranscoder, error) {
 		return nil, err
 	}
 
-	return &ZSTDTranscoder{Encoder: enc, Decoder: dec}, nil
+	return &ZSTDTranscoder{encoder: enc, decoder: dec}, nil
 }
 
 // Compress accepts arbitrary input data and returns its fully Zstandard-compressed representation.
@@ -39,7 +39,7 @@ func NewZSTDTranscoder() (*ZSTDTranscoder, error) {
 // the result to a freshly allocated destination buffer of appropriate capacity.
 // The returned slice is always a new allocation owned by the caller.
 func (t *ZSTDTranscoder) Compress(src []byte) ([]byte, error) {
-	return t.Encoder.EncodeAll(src, make([]byte, 0, len(src))), nil
+	return t.encoder.EncodeAll(src, make([]byte, 0, len(src))), nil
 }
 
 // Decompress accepts Zstandard-compressed data and returns the original uncompressed bytes.
@@ -48,5 +48,5 @@ func (t *ZSTDTranscoder) Compress(src []byte) ([]byte, error) {
 // owned by the caller. Any error during decompression (corrupted data, incomplete input, etc.)
 // is returned to the caller.
 func (t *ZSTDTranscoder) Decompress(src []byte) ([]byte, error) {
-	return t.Decoder.DecodeAll(src, nil)
+	return t.decoder.DecodeAll(src, nil)
 }
