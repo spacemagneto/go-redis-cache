@@ -43,3 +43,5 @@ func makeRepeatedString(s string, n int) string {
 	}
 	return string(result)
 }
+
+func intPtr(v int) *int { return &v }
