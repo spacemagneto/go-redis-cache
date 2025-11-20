@@ -4,7 +4,7 @@ import "github.com/goccy/go-json"
 
 // JSONTranscoder provides a generic, stateless wrapper for JSON serialization and deserialization.
 // It enables type-safe marshalling and unmarshalling of arbitrary Go values while preserving
-// full compatibility with standard JSON encoding rules (struct tags, custom MarshalJSON/UnmarshalJSON, etc.).
+// full compatibility with standard JSON encoding rules (struct tags, custom Marshal/Unmarshal, etc.).
 type JSONTranscoder[T any] struct{}
 
 // NewJSONTranscoder creates a new instance of JSONTranscoder for the specified type T.
@@ -25,7 +25,7 @@ func (t *JSONTranscoder[T]) Marshal(src T) ([]byte, error) {
 // On success it returns the decoded value, on failure it returns the zero value of T together
 // with the parsing or assignment error.
 func (t *JSONTranscoder[T]) Unmarshal(src []byte) (T, error) {
-	var dest T
-	err := json.Unmarshal(src, &dest)
-	return dest, err
+	var entry T
+	err := json.Unmarshal(src, &entry)
+	return entry, err
 }
