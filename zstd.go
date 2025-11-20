@@ -17,7 +17,7 @@ type ZSTDTranscoder struct {
 // NewZSTDTranscoder creates a new ZSTDTranscoder with a fully configured encoder and decoder.
 // The encoder is initialized with the highest compression level for optimal ratio.
 // Both objects are created with nil writers/readers because EncodeAll/DecodeAll do not require
-// an io.Writer/io.Reader – they operate on complete byte slices.
+// an io.Writer/io.Reader - they operate on complete byte slices.
 // On any error during initialization, resources are cleaned up and the error is propagated.
 func NewZSTDTranscoder() (*ZSTDTranscoder, error) {
 	enc, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedFastest))
@@ -44,7 +44,7 @@ func (t *ZSTDTranscoder) Compress(src []byte) ([]byte, error) {
 
 // Decompress accepts Zstandard-compressed data and returns the original uncompressed bytes.
 // It uses the convenient DecodeAll method which handles the complete decompression in a single
-// operation. The destination buffer is managed internally; the returned slice is a new allocation
+// operation. The destination buffer is managed internally, the returned slice is a new allocation
 // owned by the caller. Any error during decompression (corrupted data, incomplete input, etc.)
 // is returned to the caller.
 func (t *ZSTDTranscoder) Decompress(src []byte) ([]byte, error) {
