@@ -41,3 +41,71 @@ func TestJSONTranscoderMarshal(t *testing.T) {
 		})
 	}
 }
+
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name,omitempty"`
+	Age  *int   `json:"age,omitempty"`
+}
+
+type CustomType struct {
+	Value string
+}
+
+// TestJSONTranscoderUnmarshal is the table-driven test for the Unmarshal method of JSONTranscoder[T].
+// It verifies that the method correctly decodes JSON byte data into a new value of type T while fully
+// respecting standard JSON unmarshalling semantics. This includes struct field tags (omitempty, -),
+// custom UnmarshalJSON implementations, proper handling of nil/pointer types, and JSON null values.
+func TestJSONTranscoderUnmarshal(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name       string
+		transcoder any
+		input      string
+		want       any
+		wantErr    bool
+	}{
+		{name: "Valid integer", transcoder: NewJSONTranscoder[int](), input: `123`, want: 123},
+		{name: "Valid string", transcoder: NewJSONTranscoder[string](), input: `"xai"`, want: "xai"},
+		{name: "JSON null becomes nil pointer", transcoder: NewJSONTranscoder[*string](), input: `null`, want: (*string)(nil)},
+		{name: "Full struct population", transcoder: NewJSONTranscoder[User](), input: `{"id":5,"name":"Bob","age":40}`, want: User{ID: 5, Name: "Bob", Age: intPtr(40)}},
+		{name: "Partial struct population", transcoder: NewJSONTranscoder[User](), input: `{"id":10}`, want: User{ID: 10}},
+		{name: "Custom UnmarshalJSON success", transcoder: NewJSONTranscoder[CustomType](), input: `{"wrapped":"yes"}`, want: CustomType{}},
+		{name: "Invalid JSON syntax", transcoder: NewJSONTranscoder[int](), input: `abc`, wantErr: true},
+		{name: "Type mismatch error", transcoder: NewJSONTranscoder[int](), input: `"text"`, wantErr: true},
+		{name: "Custom UnmarshalJSON failure", transcoder: NewJSONTranscoder[CustomType](), input: `{}`, want: CustomType{}, wantErr: false},
+		{name: "Malformed json error", transcoder: NewJSONTranscoder[CustomType](), input: `{"name": "error_data", "value" 456`, want: nil, wantErr: true},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			var got any
+			var err error
+
+			switch tc := tt.transcoder.(type) {
+			case *JSONTranscoder[int]:
+				got, err = tc.Unmarshal([]byte(tt.input))
+			case *JSONTranscoder[string]:
+				got, err = tc.Unmarshal([]byte(tt.input))
+			case *JSONTranscoder[*string]:
+				got, err = tc.Unmarshal([]byte(tt.input))
+			case *JSONTranscoder[User]:
+				got, err = tc.Unmarshal([]byte(tt.input))
+			case *JSONTranscoder[CustomType]:
+				got, err = tc.Unmarshal([]byte(tt.input))
+			default:
+				t.Fatalf("unhandled transcoder type: %T", tc)
+			}
+
+			if tt.wantErr {
+				assert.Error(t, err, "Unmarshal must return error")
+				assert.Zero(t, got, "On error → zero value of T must be returned")
+				return
+			}
+
+			assert.NoError(t, err, "Unmarshal must succeed")
+			assert.Equal(t, tt.want, got, "Unmarshaled value mismatch")
+		})
+	}
+}
