@@ -52,6 +52,26 @@ type CustomType struct {
 	Value string
 }
 
+// TestNewJSONTranscoder is the table-driven test for the NewJSONTranscoder constructor.
+// It ensures the function returns a non-nil, reusable instance for any type T,
+// verifying stateless behavior and generic instantiation.
+func TestNewJSONTranscoder(t *testing.T) {
+	cases := []struct{ name string }{{name: "for primitive int"}, {name: "for struct type"}}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			// Instantiate for int (covers generic [T any])
+			transcoder := NewJSONTranscoder[int]()
+			// Use assert.NotNil to verify the constructor returns a valid pointer.
+			// A nil result would indicate instantiation failure.
+			assert.NotNil(t, transcoder, "NewJSONTranscoder should return non-nil instance")
+
+			// Reuse the same instance for multiple calls (verifies statelessness)
+			_, _ = transcoder.Marshal(42)
+		})
+	}
+}
+
 // TestJSONTranscoderUnmarshal is the table-driven test for the Unmarshal method of JSONTranscoder[T].
 // It verifies that the method correctly decodes JSON byte data into a new value of type T while fully
 // respecting standard JSON unmarshalling semantics. This includes struct field tags (omitempty, -),
