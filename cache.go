@@ -27,6 +27,10 @@ func (c *Cache[T]) Set(ctx context.Context, value T, key string, ttl time.Durati
 	var str string
 
 	str, err = c.transcoder.Encode(value)
+	if err != nil {
+		return err
+	}
+
 	if err = c.rdb.Set(ctx, key, str, ttl).Err(); err != nil {
 		return err
 	}
@@ -50,4 +54,28 @@ func (c *Cache[T]) Get(ctx context.Context, key string) (T, error) {
 	}
 
 	return res, nil
+}
+
+func (c *Cache[T]) GetWithTTL(ctx context.Context, key string) (T, time.Duration, error) {
+	var res T
+	var err error
+	var ttl time.Duration
+	var result string
+
+	result, err = c.rdb.Get(ctx, key).Result()
+	if err != nil {
+		return res, 0, err
+	}
+
+	ttl, err = c.rdb.TTL(ctx, key).Result()
+	if err != nil {
+		return res, 0, err
+	}
+
+	res, err = c.transcoder.Decode(result)
+	if err != nil {
+		return res, 0, err
+	}
+
+	return res, ttl, nil
 }
