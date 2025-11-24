@@ -90,3 +90,11 @@ func (c *Cache[T]) Exists(ctx context.Context, key string) (bool, error) {
 
 	return exist == 1, err
 }
+
+func (c *Cache[T]) Delete(ctx context.Context, key string) error {
+	if err := c.rdb.Del(ctx, key).Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
