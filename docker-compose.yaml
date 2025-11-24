@@ -1,0 +1,23 @@
+services:
+  redis:
+    image: bitnami/redis:latest
+    container_name: redis_cache
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/bitnami/redis/data
+    environment:
+      - REDIS_PORT_NUMBER=6379
+      - REDIS_PASSWORD=
+    networks:
+      - redis_cache_network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+    name: redis_data
+
+networks:
+  redis_cache_network:
+    name: redis_cache_network
+    driver: bridge
