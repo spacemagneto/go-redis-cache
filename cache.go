@@ -33,3 +33,21 @@ func (c *Cache[T]) Set(ctx context.Context, value T, key string, ttl time.Durati
 
 	return nil
 }
+
+func (c *Cache[T]) Get(ctx context.Context, key string) (T, error) {
+	var res T
+	var err error
+	var result string
+
+	result, err = c.rdb.Get(ctx, key).Result()
+	if err != nil {
+		return res, err
+	}
+
+	res, err = c.transcoder.Decode(result)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
