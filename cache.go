@@ -79,3 +79,14 @@ func (c *Cache[T]) GetWithTTL(ctx context.Context, key string) (T, time.Duration
 
 	return res, ttl, nil
 }
+
+func (c *Cache[T]) Exists(ctx context.Context, key string) (bool, error) {
+	var err error
+	var exist int64
+	exist, err = c.rdb.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return exist == 1, err
+}
