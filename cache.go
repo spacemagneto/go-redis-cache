@@ -7,15 +7,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisCache[T any] interface{}
-
 type Cache[T any] struct {
 	rdb        redis.UniversalClient
 	transcoder Transcoder[T]
 }
 
 func NewRedisCache[T any](client redis.UniversalClient) *Cache[T] {
-	return &Cache[T]{rdb: client, transcoder: NewPipelineTranscoder[T]()}
+	return &Cache[T]{rdb: client}
 }
 
 func NewRedisCacheWithTranscoder[T any](client redis.UniversalClient, transcoder Transcoder[T]) *Cache[T] {
@@ -48,12 +46,7 @@ func (c *Cache[T]) Get(ctx context.Context, key string) (T, error) {
 		return res, err
 	}
 
-	res, err = c.transcoder.Decode(result)
-	if err != nil {
-		return res, err
-	}
-
-	return res, nil
+	return c.transcoder.Decode(result)
 }
 
 func (c *Cache[T]) GetWithTTL(ctx context.Context, key string) (T, time.Duration, error) {
@@ -83,6 +76,7 @@ func (c *Cache[T]) GetWithTTL(ctx context.Context, key string) (T, time.Duration
 func (c *Cache[T]) Exists(ctx context.Context, key string) (bool, error) {
 	var err error
 	var exist int64
+
 	exist, err = c.rdb.Exists(ctx, key).Result()
 	if err != nil {
 		return false, err
