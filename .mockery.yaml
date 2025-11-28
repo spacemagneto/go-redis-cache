@@ -1,0 +1,9 @@
+packages:
+  github.com/spacemagneto/go-redis-cache:
+    config:
+      dir: "{{.InterfaceDir}}"
+      filename: "/mocks_test.go"
+      structname: "{{.Mock}}{{.InterfaceName}}"
+    interfaces:
+      Transcoder:
+        config:
