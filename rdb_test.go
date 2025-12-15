@@ -27,6 +27,7 @@ func TestCache(t *testing.T) {
 	ctx := context.Background()
 
 	redisAddress := os.Getenv("REDIS_ADDRESS")
+	fmt.Printf("address: %v \n", redisAddress)
 
 	rdb := redis.NewUniversalClient(&redis.UniversalOptions{Addrs: []string{redisAddress}})
 
