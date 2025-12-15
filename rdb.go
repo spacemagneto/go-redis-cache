@@ -22,25 +22,25 @@ type cache[T any] struct {
 // It applies all options in order, validates required fields, and sets sensible defaults.
 // Returns an error only if no Redis client was provided.
 func NewRedisCache[T any](opts ...options[T]) (*cache[T], error) {
-	cache := &cache[T]{}
+	c := &cache[T]{}
 
 	for _, opt := range opts {
-		opt(cache)
+		opt(c)
 	}
 
-	if cache.rdb == nil {
+	if c.rdb == nil {
 		return nil, ErrEmptyRedisClient
 	}
 
-	if cache.ttl == 0 {
-		cache.ttl = defaultTTl
+	if c.ttl == 0 {
+		c.ttl = defaultTTl
 	}
 
-	if cache.transcoder == nil {
-		cache.transcoder = &defaultTranscoder[T]{}
+	if c.transcoder == nil {
+		c.transcoder = &defaultTranscoder[T]{}
 	}
 
-	return cache, nil
+	return c, nil
 }
 
 // Set stores the given value in Redis under the specified key.

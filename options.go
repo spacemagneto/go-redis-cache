@@ -9,14 +9,14 @@ import (
 // default TTL used when no explicit TTL is configured.
 const defaultTTl = 2 * time.Hour
 
-// options defines the functional options pattern for configuring Cache[T].
+// options defines the functional options pattern for configuring cache[T].
 // Each option is a function that mutates the cache instance during construction.
-type options[T any] func(c *Cache[T])
+type options[T any] func(c *cache[T])
 
 // WithClient sets the Redis client to be used by the cache.
 // This option is mandatory - cache creation fails without a valid client.
 func WithClient[T any](rdb redis.UniversalClient) options[T] {
-	return func(c *Cache[T]) {
+	return func(c *cache[T]) {
 		c.rdb = rdb
 	}
 }
@@ -25,7 +25,7 @@ func WithClient[T any](rdb redis.UniversalClient) options[T] {
 // If the provided duration is zero or negative, the global default (2 hours) is used.
 // This value is only used when Set is called without an explicit TTL.
 func WithTTL[T any](ttl time.Duration) options[T] {
-	return func(c *Cache[T]) {
+	return func(c *cache[T]) {
 		if ttl <= 0 {
 			ttl = defaultTTl
 		}
@@ -38,7 +38,7 @@ func WithTTL[T any](ttl time.Duration) options[T] {
 // If nil is passed, the default high-performance transcoder is used automatically.
 // This enables custom serialization strategies (e.g. protobuf, msgpack, etc.).
 func WithTranscoder[T any](t Transcoder[T]) options[T] {
-	return func(c *Cache[T]) {
+	return func(c *cache[T]) {
 		if t == nil {
 			t = &defaultTranscoder[T]{}
 		}
