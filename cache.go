@@ -3,92 +3,40 @@ package cache
 import (
 	"context"
 	"time"
-
-	"github.com/redis/go-redis/v9"
 )
 
-type Cache[T any] struct {
-	rdb        redis.UniversalClient
-	transcoder Transcoder[T]
-}
+// Cache interface defines a generic contract for storing, retrieving, and managing values in a cache system.
+// It provides methods for writing values, reading values, checking for existence, retrieving expiration information, and removing entries.
+// The interface abstracts the underlying storage mechanism, allowing different cache implementations to be used interchangeably.
+// This design enables consistent cache behavior while supporting multiple storage backends.
+type Cache[T any] interface {
+	// Set method stores a value in the cache using the provided key and lifetime duration.
+	// Method validates the key and value, applies a default lifetime when no duration is provided, and persists the value in the underlying storage.
+	// Any error produced during validation, encoding, or storage is returned to the caller for handling.
+	// This method ensures that cache entries are written in a controlled and predictable manner.
+	Set(ctx context.Context, value T, key string, ttl time.Duration) error
 
-func NewRedisCache[T any](client redis.UniversalClient) *Cache[T] {
-	return &Cache[T]{rdb: client}
-}
+	// Get method retrieves a value from the cache using the provided key.
+	// Method validates the key before attempting retrieval and returns the stored value after decoding it into its original form.
+	// Any error produced during validation, retrieval, or decoding is returned to the caller.
+	// This method provides a safe mechanism for accessing cached data.
+	Get(ctx context.Context, key string) (T, error)
 
-func NewRedisCacheWithTranscoder[T any](client redis.UniversalClient, transcoder Transcoder[T]) *Cache[T] {
-	return &Cache[T]{rdb: client, transcoder: transcoder}
-}
+	// GetWithTTL method retrieves a value from the cache along with its remaining lifetime.
+	// Method validates the key, fetches the stored data, retrieves the associated expiration duration, and decodes the value.
+	// Both the decoded value and the ttl are returned together with any error encountered during the process.
+	// This method allows callers to evaluate both the data and its expiration status.
+	GetWithTTL(ctx context.Context, key string) (T, time.Duration, error)
 
-func (c *Cache[T]) Set(ctx context.Context, value T, key string, ttl time.Duration) error {
-	var err error
-	var str string
+	// Exists method checks whether a value associated with the provided key is present in the cache.
+	// Method validates the key before querying the underlying storage system.
+	// It returns a boolean indicating presence along with any error encountered during the existence check.
+	// This method provides a lightweight way to determine cache membership.
+	Exists(ctx context.Context, key string) (bool, error)
 
-	str, err = c.transcoder.Encode(value)
-	if err != nil {
-		return err
-	}
-
-	if err = c.rdb.Set(ctx, key, str, ttl).Err(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Cache[T]) Get(ctx context.Context, key string) (T, error) {
-	var res T
-	var err error
-	var result string
-
-	result, err = c.rdb.Get(ctx, key).Result()
-	if err != nil {
-		return res, err
-	}
-
-	return c.transcoder.Decode(result)
-}
-
-func (c *Cache[T]) GetWithTTL(ctx context.Context, key string) (T, time.Duration, error) {
-	var res T
-	var err error
-	var ttl time.Duration
-	var result string
-
-	result, err = c.rdb.Get(ctx, key).Result()
-	if err != nil {
-		return res, 0, err
-	}
-
-	ttl, err = c.rdb.TTL(ctx, key).Result()
-	if err != nil {
-		return res, 0, err
-	}
-
-	res, err = c.transcoder.Decode(result)
-	if err != nil {
-		return res, 0, err
-	}
-
-	return res, ttl, nil
-}
-
-func (c *Cache[T]) Exists(ctx context.Context, key string) (bool, error) {
-	var err error
-	var exist int64
-
-	exist, err = c.rdb.Exists(ctx, key).Result()
-	if err != nil {
-		return false, err
-	}
-
-	return exist == 1, err
-}
-
-func (c *Cache[T]) Delete(ctx context.Context, key string) error {
-	if err := c.rdb.Del(ctx, key).Err(); err != nil {
-		return err
-	}
-
-	return nil
+	// The Delete method removes a value associated with the provided key from the cache.
+	// Method validates the key before issuing a delete command to the underlying storage system.
+	// Any error encountered during deletion is returned to the caller.
+	// This method allows callers to explicitly remove cache entries.
+	Delete(ctx context.Context, key string) error
 }
