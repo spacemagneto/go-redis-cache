@@ -56,4 +56,4 @@ jobs:
           cache: false
       - run: go test ./...
         env:
-          REDIS_ADDRESS: redis:6379
+          REDIS_ADDRESS: localhost:6379

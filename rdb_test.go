@@ -27,9 +27,8 @@ func TestCache(t *testing.T) {
 	ctx := context.Background()
 
 	redisAddress := os.Getenv("REDIS_ADDRESS")
-	fmt.Printf("address: %v \n", redisAddress)
 
-	rdb := redis.NewUniversalClient(&redis.UniversalOptions{Addrs: []string{redisAddress}})
+	rdb := redis.NewUniversalClient(&redis.UniversalOptions{Addrs: []string{redisAddress}, PoolSize: 10})
 
 	pingErr := rdb.Ping(ctx).Err()
 	assert.NoError(t, pingErr)
