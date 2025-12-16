@@ -44,9 +44,8 @@ func (defaultTranscoder[T]) Encode(src T) (string, error) {
 // This method ensures that stored string data can be converted back into a usable typed value.
 func (defaultTranscoder[T]) Decode(src string) (T, error) {
 	var entry T
-	var err error
 
-	if err = json.Unmarshal([]byte(src), &entry); err != nil {
+	if err := json.Unmarshal([]byte(src), &entry); err != nil {
 		return entry, err
 	}
 

@@ -60,15 +60,14 @@ func (c *cache[T]) Set(ctx context.Context, value T, key string, ttl time.Durati
 		return ErrKeyIsEmpty
 	}
 
-	var err error
 	var str string
 
-	str, err = c.transcoder.Encode(value)
+	str, err := c.transcoder.Encode(value)
 	if err != nil {
 		return err
 	}
 
-	if err = c.rdb.Set(ctx, key, str, ttl).Err(); err != nil {
+	if err := c.rdb.Set(ctx, key, str, ttl).Err(); err != nil {
 		return err
 	}
 
