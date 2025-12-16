@@ -21,7 +21,7 @@ type cache[T any] struct {
 // NewRedisCache constructs a fully configured cache[T] using the provided options.
 // It applies all options in order, validates required fields, and sets sensible defaults.
 // Returns an error only if no Redis client was provided.
-func NewRedisCache[T any](opts ...options[T]) (Cache[T], error) {
+func NewRedisCache[T any](opts ...options[T]) (*cache[T], error) {
 	c := &cache[T]{}
 
 	for _, opt := range opts {
